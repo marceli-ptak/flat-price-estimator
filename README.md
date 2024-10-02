@@ -10,8 +10,8 @@ The predictive model used in this project was trained and tested on more than 40
 
 ### Prerequisites
 
-- Python 3.8 or higher
-- pip (Python package installer)
+- Python 3.12 or higher
+- pip 24.2 (Python package installer)
 - PostgreSQL
 
 ### Installation
