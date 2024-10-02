@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Property Form</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+
+<h1 style="text-align: center;">Property Form</h1>
+<form action="/predict" method="POST">
+    <!-- Select city -->
+    <label for="city">Select city:</label>
+    <select id="city" name="encoded_city" required>
+        <option value="">Select city</option>
+        <!-- Dynamically populated cities here -->
+    </select>
+
+    <!-- Select district -->
+    <label for="district">Select district:</label>
+    <select id="district" name="encoded_district" required>
+        <option value="">Select district</option>
+        <!-- Dynamically populated districts here -->
+    </select>
+
+    <!-- Select neighborhood -->
+    <label for="neighborhood">Select neighborhood:</label>
+    <select id="neighborhood" name="encoded_neighborhood" required>
+        <option value="">Select neighborhood</option>
+        <!-- Dynamically populated neighborhoods here -->
+    </select>
+
+    <div class="slider-container">
+        <label for="area">Area:</label>
+        <input type="range" id="area" name="area" min="11" max="199" value="45" step="0.01" oninput="document.getElementById('area-value').innerText = this.value">
+        <span id="area-value">45.00</span> m²
+    </div>
+
+    <div class="slider-container">
+        <label for="floor">Floor:</label>
+        <input type="range" id="floor" name="floor" min="-1" max="60" value="1">
+        <span id="floor-value">1</span>
+    </div>
+
+    <div class="slider-container">
+        <label for="building_height">Building height:</label>
+        <input type="range" id="building_height" name="building_height" min="1" max="60" value="1">
+        <span id="building-height-value">1</span>
+    </div>
+
+    <!-- Lift option -->
+    <label for="lift">Lift:</label>
+    <select id="lift" name="lift">
+        <option value="1">Yes</option>
+        <option value="0">No</option>
+    </select>
+
+    <!-- Number of rooms dropdown -->
+    <label for="number_of_rooms">Number of rooms:</label>
+    <select id="number_of_rooms" name="number_of_rooms" required>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">5</option>
+        <option value="6">6</option>
+        <option value="7">7</option>
+        <option value="8">8</option>
+        <option value="9">9</option>
+        <option value="10">10</option>
+    </select>
+
+    <!-- Market type -->
+    <label for="market">Market:</label>
+    <select id="market" name="market">
+        <option value="1">Primary</option>
+        <option value="0">Secondary</option>
+    </select>
+
+    <!-- Condition -->
+    <label for="condition">Condition:</label>
+    <select id="condition" name="condition">
+        <option value="1">Ready for occupancy</option>
+        <option value="0">Requiring renovation</option>
+        <option value="0">Raw state</option>
+    </select>
+
+    <!-- Build year slider -->
+    <div class="slider-container">
+        <label for="build_year">Build Year:</label>
+        <div class="slider-with-value">
+            <input type="range" id="build_year" name="build_year" min="1800" max="2030" value="2024"
+                   oninput="document.getElementById('build-year-value').innerText = this.value">
+            <span id="build-year-value">2024</span>
+        </div>
+    </div>
+<div class="amenities-container">
+    <div class="amenity-item">
+        <input type="checkbox" id="ac" name="amenities" value="AC">
+        <label for="ac">AC</label>
+    </div>
+    <div class="amenity-item">
+        <input type="checkbox" id="utility_room" name="amenities" value="Utility room">
+        <label for="utility_room">Utility room</label>
+    </div>
+    <div class="amenity-item">
+        <input type="checkbox" id="basement" name="amenities" value="Basement">
+        <label for="basement">Basement</label>
+    </div>
+    <div class="amenity-item">
+        <input type="checkbox" id="balcony" name="amenities" value="Balcony">
+        <label for="balcony">Balcony</label>
+    </div>
+    <div class="amenity-item">
+        <input type="checkbox" id="terrace" name="amenities" value="Terrace">
+        <label for="terrace">Terrace</label>
+    </div>
+    <div class="amenity-item">
+        <input type="checkbox" id="garden" name="amenities" value="Garden">
+        <label for="garden">Garden</label>
+    </div>
+    <div class="amenity-item">
+        <input type="checkbox" id="parking_spot" name="amenities" value="Parking spot">
+        <label for="parking_spot">Parking spot</label>
+    </div>
+</div>
+    <button type="submit">Estimate</button>
+</form>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $.ajax({
+            url: '/get_cities',
+            method: 'GET',
+            success: function(data) {
+                $('#city').empty();
+                $('#city').append('<option value="">Select city</option>');
+                data.forEach(function(city) {
+                    $('#city').append('<option value="' + city.id + '">' + city.name + '</option>');
+                });
+            },
+            error: function(error) {
+                console.log("Error fetching cities: ", error);
+            }
+        });
+    });
+
+    // Load districts based on selected city
+    $('#city').change(function() {
+        var cityId = $(this).val();
+        if (cityId) {
+            $('#district').prop('disabled', true);  // Disable district dropdown while loading
+            $.ajax({
+                url: '/get_districts/' + cityId,
+                method: 'GET',
+                success: function(data) {
+                    $('#district').empty();
+                    $('#district').append('<option value="">Select district</option>');
+                    data.forEach(function(district) {
+                        $('#district').append('<option value="' + district.id + '">' + district.name + '</option>');
+                    });
+                    $('#district').prop('disabled', false);  // Enable dropdown after loading districts
+                },
+                error: function(error) {
+                    console.log("Error fetching districts: ", error);
+                    $('#district').prop('disabled', true);  // Disable dropdown in case of error
+                }
+            });
+        } else {
+            $('#district').empty().append('<option value="">Select district</option>');
+            $('#neighborhood').empty().append('<option value="">Select neighborhood</option>');
+        }
+    });
+
+    // Load neighborhoods based on selected district
+    $('#district').change(function() {
+        var districtId = $(this).val();
+        if (districtId) {
+            $('#neighborhood').prop('disabled', true);  // Disable neighborhood dropdown while loading
+            $.ajax({
+                url: '/get_neighborhoods/' + districtId,
+                method: 'GET',
+                success: function(data) {
+                    $('#neighborhood').empty();
+                    $('#neighborhood').append('<option value="">Select neighborhood</option>');
+                    data.forEach(function(neighborhood) {
+                        $('#neighborhood').append('<option value="' + neighborhood.id + '">' + neighborhood.name + '</option>');
+                    });
+                    $('#neighborhood').prop('disabled', false);  // Enable dropdown after loading neighborhoods
+                },
+                error: function(error) {
+                    console.log("Error fetching neighborhoods: ", error);
+                    $('#neighborhood').prop('disabled', true);  // Disable dropdown in case of error
+                }
+            });
+        } else {
+            $('#neighborhood').empty().append('<option value="">Select neighborhood</option>');
+        }
+    });
+
+    // Update slider value and synchronize Building height
+    document.getElementById('floor').addEventListener('input', function() {
+        let floorValue = parseFloat(this.value);
+        document.getElementById('floor-value').innerText = floorValue;
+
+        let buildingHeightInput = document.getElementById('building_height');
+        let buildingHeightValue = parseFloat(buildingHeightInput.value);
+
+        // Set building height to at least floor
+        if (buildingHeightValue < floorValue) {
+            buildingHeightInput.value = floorValue;
+            document.getElementById('building-height-value').innerText = floorValue;
+        }
+    });
+
+    // Update displayed value of Building height
+    document.getElementById('building_height').addEventListener('input', function() {
+        let buildingHeightValue = parseFloat(this.value);
+        document.getElementById('building-height-value').innerText = buildingHeightValue;
+    });
+
+    // Update Area value
+    document.getElementById('area').addEventListener('input', function() {
+        let areaValue = parseFloat(this.value).toFixed(2);
+        document.getElementById('area-value').innerText = areaValue;
+    });
+
+    document.getElementById('build_year').addEventListener('input', function() {
+        let buildYearValue = parseFloat(this.value);
+        document.getElementById('build-year-value').innerText = buildYearValue;
+    });
+</script>
+</body>
+</html>

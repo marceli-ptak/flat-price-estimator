@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@1.0.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+</head>
+<body>
+    <h1>Results</h1>
+    <div class="result">
+        <p>The estimated price is {{ price }} zł/m²,</p>
+        <p id="summary"></p>
+    </div>
+    <div class="chart-container" style="position: relative; height:40vh; width:100vw">
+        <canvas id="priceComparisonChart"></canvas>
+    </div>
+    <a href="{{ url_for('index') }}" class="back-link">Go back to the form</a>
+    <script>
+        const predictedPrice = {{ price }};
+        const cityAvgPrice = {{ city_avg_price }};
+        const districtAvgPrice = {{ district_avg_price }};
+        const neighborhoodAvgPrice = {{ neighborhood_avg_price }};
+        const cityName = "{{ city_name }}";
+        const districtName = "{{ district_name }}";
+        const neighborhoodName = "{{ neighborhood_name }}";
+
+        const city_difference = Math.abs(Math.round(predictedPrice - cityAvgPrice));
+        const district_difference = Math.abs(Math.round(predictedPrice - districtAvgPrice));
+        const neighborhood_difference = Math.abs(Math.round(predictedPrice - neighborhoodAvgPrice));
+
+        const city_comparisonText = predictedPrice > cityAvgPrice ? 'more' : 'less';
+        const district_comparisonText = predictedPrice > districtAvgPrice ? 'more' : 'less';
+        const neighborhood_comparisonText = predictedPrice > neighborhoodAvgPrice ? 'more' : 'less';
+
+        const summaryText = `which makes it ${city_difference} zł/m² ${city_comparisonText} than the average price for ${cityName} city, \n
+        ${district_difference} zł/m² ${district_comparisonText} than the average price for ${districtName} district, \n
+        and ${neighborhood_difference} zł/m² ${neighborhood_comparisonText} than the average price for ${neighborhoodName} neighborhood.`;
+
+        document.getElementById('summary').innerText = summaryText;
+
+        const ctx = document.getElementById('priceComparisonChart').getContext('2d');
+
+        const priceComparisonChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: [
+                    `${cityName}, ${Math.round(cityAvgPrice)} zł/m²`,
+                    `${districtName}, ${Math.round(districtAvgPrice)} zł/m²`,
+                    `${neighborhoodName}, ${Math.round(neighborhoodAvgPrice)} zł/m²`
+                ],
+                datasets: [{
+                    label: 'Price Comparison (zł/m²)',
+                    data: [cityAvgPrice, districtAvgPrice, neighborhoodAvgPrice],
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: 'white',
+                            font: {
+                                size: 20,
+                                weight: 'bold'
+                            },
+                            textStrokeColor: 'rgba(0, 0, 0, 0.5)',
+                            textStrokeWidth: 4,
+                            backdropColor: 'rgba(0, 0, 0, 0.8)',
+                            borderColor: 'rgba(0, 0, 0, 1)',
+                            borderWidth: 1
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: 'white',
+                            font: {
+                                size: 20,
+                                weight: 'bold'
+                            },
+                            textStrokeColor: 'rgba(0, 0, 0, 0.5)',
+                            textStrokeWidth: 4,
+                            backdropColor: 'rgba(0, 0, 0, 0.8)',
+                            borderColor: 'rgba(0, 0, 0, 1)',
+                            borderWidth: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false // Disable legend
+                    },
+                    annotation: {
+                        annotations: {
+                            line1: {
+                                type: 'line',
+                                yMin: predictedPrice,
+                                yMax: predictedPrice,
+                                borderColor: 'white',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                label: {
+                                    content: `${predictedPrice} zł/m²`,
+                                    enabled: true,
+                                    position: 'center',
+                                    yAdjust: -20,
+                                    backgroundColor: 'rgba(255, 255, 255, 0)',
+                                    color: 'white',
+                                    font: {
+                                        size: 20,
+                                        weight: 'bold',
+                                        strokeStyle: 'rgba(0, 0, 0, 0.5)',
+                                        lineWidth: 4
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
